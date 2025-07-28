@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import pandas as pd
 
-st.set_page_config(page_title="Trắc nghiệm ảnh", layout="wide")
+st.set_page_config(page_title="iTeX-Test", layout="wide")
 
 hide_streamlit_style = """
     <style>
@@ -96,8 +96,15 @@ def randomize_by_group(questions):
 query_params = st.query_params
 query_exam_id = query_params.get("exam_id", [None])[0]
 
+import streamlit as st
+
 if "role" not in st.session_state:
-    st.title("🎓 Hệ thống trắc nghiệm ảnh - Đa giáo viên/đa đề")
+    col1, col2 = st.columns([1, 15])
+    with col1:
+        st.image("logo.png", width=80)
+    with col2:
+        st.markdown("## iTeX - TẠO ĐỀ KIỂM TRA ONLINE")
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Tôi là Giáo viên"):
@@ -107,8 +114,13 @@ if "role" not in st.session_state:
             st.session_state["role"] = "student"
     st.stop()
 
+
 if st.session_state["role"] == "teacher":
-    st.title("👩‍🏫 Tạo đề kiểm tra trắc nghiệm từ ảnh (tự động ghép STT với ảnh)")
+    col1, col2 = st.columns([1, 15])
+    with col1:
+        st.image("logo.png", width=80)
+    with col2:
+        st.markdown("## iTeX - TẠO ĐỀ KIỂM TRA ONLINE")
 
     img_percent = st.slider("Tỷ lệ ảnh so với khung (%)", min_value=20, max_value=100, value=50, step=5)
     img_ratio = img_percent / 100.0
@@ -210,7 +222,7 @@ if st.session_state["role"] == "teacher":
                     display_image_base64(q["da_img_data"], caption=f"Lời giải {i+1}", img_ratio=img_ratio)
                 st.markdown("---")
 
-    if questions and st.button("Lưu bộ đề này"):
+    if questions and st.button("Tạo đề"):
         exam_id = generate_exam_id()
         exam_data = {
             "exam_id": exam_id,
@@ -222,11 +234,11 @@ if st.session_state["role"] == "teacher":
             "img_ratio": img_ratio
         }
         save_exam(exam_data, exam_id)
-        st.success(f"Đã lưu đề thành công! Mã đề: **{exam_id}**")
+        st.success(f"Tạo Đề thành công! Hãy gửi Mã đề cho học sinh: **{exam_id}**")
         link_rel = f"?exam_id={exam_id}"
-        st.markdown(f"- Gửi link này cho học sinh: [Làm bài ngay]({link_rel})")
-        st.code(link_rel)
-        st.info("Giáo viên lưu lại mã đề, học sinh vào đúng link/mã đề này để làm bài.")
+        #st.markdown(f"- Gửi link này cho học sinh: [Làm bài ngay]({link_rel})")
+        #st.code(link_rel)
+        #st.info("Giáo viên lưu lại mã đề, học sinh vào đúng link/mã đề này để làm bài.")
 
     st.markdown("---")
     st.subheader("📋 Xem/tổng hợp kết quả của một đề")
@@ -339,7 +351,11 @@ if st.session_state["role"] == "teacher":
                     st.rerun()
 
 elif st.session_state["role"] == "student":
-    st.title("🧑‍🎓 Làm bài trắc nghiệm ảnh (vào đề riêng biệt)")
+    col1, col2 = st.columns([1, 15])
+    with col1:
+        st.image("logo.png", width=80)
+    with col2:
+        st.markdown("## KIỂM TRA ONLINE")
     exam_id = query_exam_id
     if not exam_id:
         exam_id = st.text_input("Nhập MÃ ĐỀ được giáo viên gửi:", key="examid_hs")
