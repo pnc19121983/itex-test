@@ -270,19 +270,28 @@ if st.session_state["role"] == "teacher":
                     bar_colors = ["#EFFFF4"] * len(diems)  # màu xanh lá tươi cho cả cột
                     bar_edgecolors = ["#17D46A"] * len(diems)  # viền cùng màu
 
-                    fig, ax = plt.subplots(figsize=(max(6, 0.8*len(names)), 5))
-                    bars = ax.bar(names, diems, color=bar_colors, edgecolor=bar_edgecolors, linewidth=2)
+                    num_students = len(names)
+                    # Tính width tự động: ít HS thì cột to, nhiều HS thì cột nhỏ
+                    width = max(0.2, min(0.8, 10/num_students))
 
+                    fig, ax = plt.subplots(figsize=(max(6, 0.9*num_students), 5), dpi=500)
+                    bars = ax.bar(names, diems, width=width, 
+                                color=bar_colors, edgecolor=bar_edgecolors, linewidth=2)
 
                     ax.set_ylabel("Điểm", fontsize=12)
                     ax.set_xlabel("Học sinh", fontsize=12)
                     ax.set_title("Biểu đồ điểm học sinh", fontsize=14)
+
                     for bar, diem in zip(bars, diems):
                         ax.annotate(f"{diem}", xy=(bar.get_x() + bar.get_width() / 2, diem),
-                                    xytext=(0, 4), textcoords="offset points", ha='center', va='bottom', fontsize=12, color="#1d1d1d", fontweight="bold")
+                                    xytext=(0, 4), textcoords="offset points", 
+                                    ha='center', va='bottom', fontsize=12, 
+                                    color="#1d1d1d", fontweight="bold")
+
                     plt.xticks(rotation=45, ha='right', fontsize=11)
                     plt.tight_layout()
-                    st.pyplot(fig)
+                    st.pyplot(fig, dpi=500)
+
                     if results and exdata:
                         questions = exdata.get("questions", [])
                         total_students = len(results)
@@ -454,26 +463,23 @@ elif st.session_state["role"] == "student":
         elif q.get("type") == "true_false":
             st.markdown(f"### Câu {i+1} (Đúng/Sai từng ý)")
             display_image_base64(q["img_data"], caption=f"Câu hỏi Đúng/Sai {i+1}", img_ratio=img_ratio)
-            cols = st.columns(2)
             tf_labels = ["Ý a", "Ý b", "Ý c", "Ý d"]
+
             if isinstance(st.session_state[f"stu_img_answers_{exam_id}"][i], list) and len(st.session_state[f"stu_img_answers_{exam_id}"][i]) == 4:
                 user_tf = st.session_state[f"stu_img_answers_{exam_id}"][i]
             else:
                 user_tf = [None]*4
+
             for j in range(4):
-                key_true = f"tf_{i}_{j}_Đ_{exam_id}"
-                key_false = f"tf_{i}_{j}_S_{exam_id}"
-                with cols[0]:
-                    val_true = st.checkbox(tf_labels[j] + " - Đúng", key=key_true, value=(user_tf[j]=="Đ"), disabled=not allow_do)
-                with cols[1]:
-                    val_false = st.checkbox(tf_labels[j] + " - Sai", key=key_false, value=(user_tf[j]=="S"), disabled=not allow_do)
-                if val_true and val_false:
-                    if st.session_state[key_true]: st.session_state[key_false] = False
-                    if st.session_state[key_false]: st.session_state[key_true] = False
-                    val_false = not val_true
-                user_tf[j] = "Đ" if val_true else ("S" if val_false else None)
+                checked = st.checkbox(tf_labels[j] + " (tick nếu đúng)", 
+                                    key=f"tf_{i}_{j}_{exam_id}", 
+                                    value=(user_tf[j] == "Đ"), 
+                                    disabled=not allow_do)
+                user_tf[j] = "Đ" if checked else "S"
+
             st.session_state[f"stu_img_answers_{exam_id}"][i] = user_tf
-            st.info("Tick mỗi ý 1 đáp án Đúng/Sai.")
+            st.info("Tick vào ý đúng, để trống = Sai.")
+
         elif q.get("type") == "short_answer":
             st.markdown(f"### Câu {i+1} (Trả lời ngắn)")
             display_image_base64(q["img_data"], caption=f"Câu trả lời ngắn {i+1}", img_ratio=img_ratio)
