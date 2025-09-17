@@ -292,67 +292,39 @@ if st.session_state["role"] == "teacher":
                     plt.tight_layout()
                     st.pyplot(fig, dpi=500)
 
-                    if results and exdata:
-                        questions = exdata.get("questions", [])
-                        total_students = len(results)
-                        num_questions = len(questions)
+                # 📋 Liệt kê chi tiết kết quả từng học sinh
+                    st.markdown("### 📊 Bảng kết quả chi tiết")
 
-                        # Đếm số lượt sai cho từng câu
-                        wrong_counts = [0] * num_questions
-                        for res in results:
-                            for i, q in enumerate(questions):
-                                user_ans = res["answers"][i] if i < len(res["answers"]) else None
-                                if q.get("type") == "mcq":
-                                    if user_ans != q["answer"]:
-                                        wrong_counts[i] += 1
-                                elif q.get("type") == "true_false":
-                                    if not (isinstance(user_ans, list) and len(user_ans) == 4):
-                                        wrong_counts[i] += 1
-                                    else:
-                                        for j in range(4):
-                                            if user_ans[j] != q["answers"][j]:
-                                                wrong_counts[i] += 0.25
-                                elif q.get("type") == "short_answer":
-                                    ans = str(user_ans).replace(" ", "").lower() if user_ans else ""
-                                    key = str(q["answer"]).replace(" ", "").lower()
-                                    if not ans or ans != key:
-                                        wrong_counts[i] += 1
+                    questions = exdata["questions"]
+                    num_q = len(questions)
 
-                        # Tính tỉ lệ sai (%)
-                        wrong_rates = [count / total_students * 100 for count in wrong_counts]
+                    # Tạo dữ liệu bảng
+                    rows = []
+                    for r in results:
+                        row = {
+                            "Tên học sinh": r["name"],
+                            "Điểm": f"{r['score']:.2f}"
+                        }
+                        for i, q in enumerate(questions):
+                            user_ans = r["answers"][i] if i < len(r["answers"]) else None
+                            correct = False
+                            if q["type"] == "mcq":
+                                correct = (user_ans == q["answer"])
+                            elif q["type"] == "true_false":
+                                correct = (isinstance(user_ans, list) and user_ans == q["answers"])
+                            elif q["type"] == "short_answer":
+                                ans = str(user_ans).replace(" ","").lower() if user_ans else ""
+                                key = str(q["answer"]).replace(" ","").lower()
+                                correct = (ans == key)
+                            icon = f"<span style='color:green;font-size:20px'>✅</span>" if correct else f"<span style='color:red;font-size:20px'>❌</span>"
+                            row[f"Câu {i+1}"] = icon
+                        rows.append(row)
 
-                        # Danh sách đã sắp xếp giảm dần
-                        sorted_wrong = sorted(
-                            [(i, wrong_counts[i], wrong_rates[i]) for i in range(num_questions)],
-                            key=lambda x: -x[1]
-                        )
+                    df = pd.DataFrame(rows)
 
-                        # Hiển thị bảng thống kê
-                        st.markdown("### 🔍 Các câu hỏi bị sai nhiều nhất")
-                        st.write("STT = số thứ tự câu hỏi. Số lượt sai có thể lớn hơn số học sinh nếu là câu Đ/S (mỗi ý sai 0.25).")
+                    # Hiển thị bảng HTML (giữ màu sắc)
+                    st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-                        data_display = []
-                        for idx, count, rate in sorted_wrong:
-                            if count > 0:
-                                data_display.append({
-                                    "Câu số": idx + 1,
-                                    "Số lượt sai": int(count) if count.is_integer() else round(count, 2),
-                                    "Tỉ lệ sai (%)": f"{rate:.1f}%"
-                                })
-
-                        if data_display:
-                            st.dataframe(data_display, use_container_width=True)
-
-                            # Hiển thị ảnh minh họa cho từng câu bị sai
-                            st.markdown("### 🖼️ Hình ảnh các câu hỏi bị sai nhiều")
-                            for idx, count, rate in sorted_wrong:
-                                if count > 0:
-                                    q = questions[idx]
-                                    st.markdown(f"**Câu {idx + 1}** – Số lượt sai: {round(count,2)} – Tỉ lệ sai: {rate:.1f}%")
-                                    display_image_base64(q["img_data"], caption=f"Câu {idx + 1}: {q.get('img_name', '')}", img_ratio=0.5)
-                                    st.markdown("---")
-                        else:
-                            st.info("Chưa có câu hỏi nào bị sai.")
 
 
                 if st.button("Xóa tất cả kết quả của đề này", key="xoakq"+check_exam_id):
