@@ -318,16 +318,19 @@ if st.session_state["role"] == "teacher":
                             # ---- Tính điểm câu này ----
                             if q["type"] == "mcq":
                                 score_q = 1.0 if user_ans == q["answer"] else 0.0
+
                             elif q["type"] == "true_false":
                                 if isinstance(user_ans, list) and len(user_ans) == 4:
                                     correct_cnt = sum([user_ans[k] == q["answers"][k] for k in range(4)])
                                     score_q = correct_cnt / 4.0
                                 else:
                                     score_q = 0.0
+
                             elif q["type"] == "short_answer":
                                 ans = str(user_ans).replace(" ", "").lower() if user_ans else ""
                                 key = str(q["answer"]).replace(" ", "").lower()
                                 score_q = 1.0 if ans == key else 0.0
+
                             else:
                                 score_q = 0.0
 
@@ -346,6 +349,7 @@ if st.session_state["role"] == "teacher":
                     # Hiển thị bảng
                     df = pd.DataFrame(rows)
                     st.write(df.to_html(escape=False), unsafe_allow_html=True)
+
 
 
 
