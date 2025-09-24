@@ -295,30 +295,6 @@ if st.session_state["role"] == "teacher":
                     # 📋 Liệt kê chi tiết kết quả từng học sinh
                     st.markdown("### 📊 Bảng kết quả chi tiết")
 
-                    def circle_html(percent: float) -> str:
-                        """Tạo HTML hình tròn hiển thị % với màu theo tỉ lệ"""
-                        if percent == 100:
-                            color = "#8BC34A"   # xanh lá
-                        elif percent == 0:
-                            color = "#F44336"   # đỏ
-                        else:
-                            color = "#FF9800"   # cam
-
-                        html = f"""
-                        <div style="
-                            width:60px;height:60px;
-                            border-radius:50%;
-                            background:{color};
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            font-weight:bold;
-                            color:black;">
-                            {int(percent)}
-                        </div>
-                        """
-                        return html
-
                     questions = exdata["questions"]
 
                     rows = []
@@ -346,14 +322,19 @@ if st.session_state["role"] == "teacher":
                             else:
                                 score_q = 0.0
 
-                            percent = score_q * 100
-                            row[f"Câu {i+1}"] = circle_html(percent)
+                            # ---- Quy đổi ra icon hình tròn màu ----
+                            if score_q == 1.0:
+                                icon = "<span style='color:green;font-size:22px'>●</span>"  # xanh
+                            elif score_q == 0.0:
+                                icon = "<span style='color:red;font-size:22px'>●</span>"    # đỏ
+                            else:
+                                icon = "<span style='color:orange;font-size:22px'>●</span>" # cam
 
+                            row[f"Câu {i+1}"] = icon
                         rows.append(row)
 
                     df = pd.DataFrame(rows)
                     st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
-
 
 
 
