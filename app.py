@@ -292,12 +292,7 @@ if st.session_state["role"] == "teacher":
                     plt.tight_layout()
                     st.pyplot(fig, dpi=500)
 
-                    # 📋 Liệt kê chi tiết kết quả từng học sinh
-                    st.markdown("### 📊 Bảng kết quả chi tiết")
-
-                    questions = exdata["questions"]
                     rows = []
-
                     for r in results:
                         row = {
                             "Tên học sinh": r["name"],
@@ -309,38 +304,46 @@ if st.session_state["role"] == "teacher":
 
                         # Map lại theo index gốc của câu hỏi
                         for orig_idx, q in enumerate(questions):
+                            # vị trí của câu hỏi gốc trong đề đã random
                             if orig_idx in rand_indices:
                                 rand_pos = rand_indices.index(orig_idx)
                                 user_ans = answers[rand_pos] if rand_pos < len(answers) else None
                             else:
                                 user_ans = None
 
-                            # ---- Tính điểm câu này ----
+                            # ---- Tính điểm theo đúng thang ----
                             if q["type"] == "mcq":
-                                score_q = 1.0 if user_ans == q["answer"] else 0.0
+                                score_q = 0.25 if user_ans == q["answer"] else 0.0
 
                             elif q["type"] == "true_false":
                                 if isinstance(user_ans, list) and len(user_ans) == 4:
-                                    correct_cnt = sum([user_ans[k] == q["answers"][k] for k in range(4)])
-                                    score_q = correct_cnt / 4.0
+                                    correct_cnt = sum(user_ans[k] == q["answers"][k] for k in range(4))
+                                    if correct_cnt == 1:
+                                        score_q = 0.1
+                                    elif correct_cnt == 2:
+                                        score_q = 0.25
+                                    elif correct_cnt == 3:
+                                        score_q = 0.5
+                                    elif correct_cnt == 4:
+                                        score_q = 1.0
+                                    else:
+                                        score_q = 0.0
                                 else:
                                     score_q = 0.0
 
                             elif q["type"] == "short_answer":
                                 ans = str(user_ans).replace(" ", "").lower() if user_ans else ""
                                 key = str(q["answer"]).replace(" ", "").lower()
-                                score_q = 1.0 if ans == key else 0.0
+                                score_q = 0.5 if ans == key else 0.0
 
                             else:
                                 score_q = 0.0
 
-                            # ---- Chọn icon màu ----
-                            if score_q == 1.0:
-                                icon = "<span style='color:green;font-size:60px'>●</span>"
-                            elif score_q == 0.0:
-                                icon = "<span style='color:red;font-size:60px'>●</span>"
+                            # ---- Icon hiển thị ----
+                            if score_q > 0:
+                                icon = "<span style='color:green;font-size:24px'>●</span>"
                             else:
-                                icon = "<span style='color:orange;font-size:60px'>●</span>"
+                                icon = "<span style='color:red;font-size:24px'>●</span>"
 
                             row[f"Câu {orig_idx+1}"] = icon
 
@@ -349,8 +352,6 @@ if st.session_state["role"] == "teacher":
                     # Hiển thị bảng
                     df = pd.DataFrame(rows)
                     st.write(df.to_html(escape=False), unsafe_allow_html=True)
-
-
 
 
 
