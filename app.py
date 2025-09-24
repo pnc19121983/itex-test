@@ -263,34 +263,35 @@ if st.session_state["role"] == "teacher":
                     st.write(f"{idx+1}. {r['name']} - {r['school']} - Lớp {r['class_']} - Điểm: {diem}")
                     student_scores.append((r['name'], diem))
                 if student_scores:
+                    # Sắp xếp điểm giảm dần
                     student_scores = sorted(student_scores, key=lambda x: -x[1])
                     names = [x[0] for x in student_scores]
                     diems = [x[1] for x in student_scores]
 
-                    bar_colors = ["#EFFFF4"] * len(diems)  # màu xanh lá tươi cho cả cột
-                    bar_edgecolors = ["#17D46A"] * len(diems)  # viền cùng màu
+                    # Đánh số thứ tự trước tên học sinh
+                    ranked_labels = [f"{i+1}. {name}" for i, name in enumerate(names)]
 
-                    num_students = len(names)
-                    # Tính width tự động: ít HS thì cột to, nhiều HS thì cột nhỏ
-                    width = max(0.2, min(0.8, 10/num_students))
+                    # Tô màu cho cột (xanh nhạt, viền xanh đậm)
+                    colors = ["#EFFFF4"] * len(diems)
+                    edgecolors = ["#17D46A"] * len(diems)
 
-                    fig, ax = plt.subplots(figsize=(max(6, 0.9*num_students), 5), dpi=500)
-                    bars = ax.bar(names, diems, width=width, 
-                                color=bar_colors, edgecolor=bar_edgecolors, linewidth=2)
+                    fig, ax = plt.subplots(figsize=(max(12, 0.6*len(names)), 6), dpi=500)
+                    bars = ax.bar(ranked_labels, diems, color=colors, edgecolor=edgecolors, linewidth=1.5)
+
+                    # Ghi nhãn điểm trên cột (xoay dọc)
+                    for bar in bars:
+                        height = bar.get_height()
+                        ax.text(bar.get_x() + bar.get_width()/2, height + 0.05,
+                                f"{height:.2f}", ha='center', va='bottom', fontsize=9, rotation=90)
 
                     ax.set_ylabel("Điểm", fontsize=12)
-                    ax.set_xlabel("Học sinh", fontsize=12)
                     ax.set_title("Biểu đồ điểm học sinh", fontsize=14)
+                    ax.set_ylim(0, 10)  # giới hạn trục Y 0–10
 
-                    for bar, diem in zip(bars, diems):
-                        ax.annotate(f"{diem}", xy=(bar.get_x() + bar.get_width() / 2, diem),
-                                    xytext=(0, 4), textcoords="offset points", 
-                                    ha='center', va='bottom', fontsize=12, 
-                                    color="#1d1d1d", fontweight="bold")
-
-                    plt.xticks(rotation=45, ha='right', fontsize=11)
+                    plt.xticks(rotation=45, ha='right', fontsize=10)
                     plt.tight_layout()
                     st.pyplot(fig, dpi=500)
+
 
                     # 📋 Liệt kê chi tiết kết quả từng học sinh
                     st.markdown("### 📊 Bảng kết quả chi tiết")
@@ -349,10 +350,6 @@ if st.session_state["role"] == "teacher":
                     # Hiển thị bảng
                     df = pd.DataFrame(rows)
                     st.write(df.to_html(escape=False), unsafe_allow_html=True)
-
-
-
-
 
                 if st.button("Xóa tất cả kết quả của đề này", key="xoakq"+check_exam_id):
                     os.remove(f"results_{check_exam_id}.json")
