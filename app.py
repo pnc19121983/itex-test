@@ -322,22 +322,19 @@ if st.session_state["role"] == "teacher":
                             else:
                                 score_q = 0.0
 
-                            # ---- Hiển thị icon + điểm dưới icon ----
-                            color = "green" if score_q == 1.0 else "red" if score_q == 0.0 else "orange"
-                            score_display = str(float(score_q)).rstrip('0').rstrip('.')  # bỏ số 0 thừa
+                            # ---- Quy đổi ra icon hình tròn màu ----
+                            if score_q == 1.0:
+                                icon = "<span style='color:green;font-size:100px'>●</span>"  # xanh
+                            elif score_q == 0.0:
+                                icon = "<span style='color:red;font-size:100px'>●</span>"    # đỏ
+                            else:
+                                icon = "<span style='color:orange;font-size:100px'>●</span>" # cam
 
-                            icon_html = f"""
-                            <div style='display:flex;flex-direction:column;align-items:center;font-size:14px'>
-                                <span style='color:{color};font-size:30px'>●</span>
-                                <span>{score_display}</span>
-                            </div>
-                            """
-                            row[f"Câu {i+1}"] = icon_html
+                            row[f"Câu {i+1}"] = icon
                         rows.append(row)
 
                     df = pd.DataFrame(rows)
                     st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
-
 
 
 
