@@ -324,11 +324,11 @@ if st.session_state["role"] == "teacher":
 
                             # ---- Quy đổi ra icon hình tròn màu ----
                             if score_q == 1.0:
-                                icon = "<span style='color:green;font-size:22px'>●</span>"  # xanh
+                                icon = "<span style='color:green;font-size:30px'>●</span>"  # xanh
                             elif score_q == 0.0:
-                                icon = "<span style='color:red;font-size:22px'>●</span>"    # đỏ
+                                icon = "<span style='color:red;font-size:30px'>●</span>"    # đỏ
                             else:
-                                icon = "<span style='color:orange;font-size:22px'>●</span>" # cam
+                                icon = "<span style='color:orange;font-size:30px'>●</span>" # cam
 
                             row[f"Câu {i+1}"] = icon
                         rows.append(row)
