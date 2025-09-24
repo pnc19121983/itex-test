@@ -292,13 +292,11 @@ if st.session_state["role"] == "teacher":
                     plt.tight_layout()
                     st.pyplot(fig, dpi=500)
 
-                # 📋 Liệt kê chi tiết kết quả từng học sinh
+                    # 📋 Liệt kê chi tiết kết quả từng học sinh
                     st.markdown("### 📊 Bảng kết quả chi tiết")
 
                     questions = exdata["questions"]
-                    num_q = len(questions)
 
-                    # Tạo dữ liệu bảng
                     rows = []
                     for r in results:
                         row = {
@@ -307,22 +305,35 @@ if st.session_state["role"] == "teacher":
                         }
                         for i, q in enumerate(questions):
                             user_ans = r["answers"][i] if i < len(r["answers"]) else None
-                            correct = False
+
+                            # ---- Tính % điểm câu này ----
                             if q["type"] == "mcq":
-                                correct = (user_ans == q["answer"])
+                                score_q = 1.0 if user_ans == q["answer"] else 0.0
                             elif q["type"] == "true_false":
-                                correct = (isinstance(user_ans, list) and user_ans == q["answers"])
+                                if isinstance(user_ans, list) and len(user_ans) == 4:
+                                    correct_cnt = sum([user_ans[k] == q["answers"][k] for k in range(4)])
+                                    score_q = correct_cnt / 4.0  # tỉ lệ 0.0 → 1.0
+                                else:
+                                    score_q = 0.0
                             elif q["type"] == "short_answer":
-                                ans = str(user_ans).replace(" ","").lower() if user_ans else ""
-                                key = str(q["answer"]).replace(" ","").lower()
-                                correct = (ans == key)
-                            icon = f"<span style='color:green;font-size:20px'>✅</span>" if correct else f"<span style='color:red;font-size:20px'>❌</span>"
+                                ans = str(user_ans).replace(" ", "").lower() if user_ans else ""
+                                key = str(q["answer"]).replace(" ", "").lower()
+                                score_q = 1.0 if ans == key else 0.0
+                            else:
+                                score_q = 0.0
+
+                            # ---- Quy đổi ra icon hình tròn màu ----
+                            if score_q == 1.0:
+                                icon = "<span style='color:green;font-size:22px'>●</span>"  # xanh
+                            elif score_q == 0.0:
+                                icon = "<span style='color:red;font-size:22px'>●</span>"    # đỏ
+                            else:
+                                icon = "<span style='color:orange;font-size:22px'>●</span>" # cam
+
                             row[f"Câu {i+1}"] = icon
                         rows.append(row)
 
                     df = pd.DataFrame(rows)
-
-                    # Hiển thị bảng HTML (giữ màu sắc)
                     st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 
